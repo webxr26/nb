@@ -1,40 +1,223 @@
-<script>
-const students = [
-  { name: "김동현", url: "https://edu.delightex.com/PXC-DNB" },
-  { name: "이유찬", url: "https://edu.delightex.com/MAX-PEN" },
-  { name: "최우혁", url: "https://edu.delightex.com/PAG-SBY" },
-  { name: "김민호", url: "https://edu.delightex.com/MVM-RYQ" },
-  { name: "김시현", url: "https://edu.delightex.com/NQX-UWM" },
-  { name: "김지효", url: "https://edu.delightex.com/NTU-XGK" },
-  { name: "한규철", url: "https://edu.delightex.com/QNB-HVE" },
-  { name: "김도린", url: "https://edu.delightex.com/TXB-HHN" },
-  { name: "김우석", url: "https://edu.delightex.com/ETW-KGJ" },
-  { name: "남승현", url: "https://edu.delightex.com/RNT-TTK" },
-  { name: "남정원", url: "https://edu.delightex.com/BUM-HJH" },
-  { name: "심지석", url: "https://edu.delightex.com/BVE-WMK" },
-  { name: "오도윤", url: "https://edu.delightex.com/SYR-HYB" },
-  { name: "이도원", url: "https://edu.delightex.com/MSN-USG" },
-  { name: "이효연", url: "https://edu.delightex.com/NHT-SDA" },
-  { name: "진하음", url: "https://edu.delightex.com/VYG-KXY" }
-];
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>상상이 현실로, 내가 만드는 가상 공간</title>
 
-const grid = document.currentScript.parentElement;
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
 
-students.forEach((student) => {
-  const div = document.createElement("div");
-  div.className = "card";
-  div.tabIndex = 0;
+    h1 {
+      margin: 20px 0 10px;
+      font-size: 28px;
+    }
 
-  div.innerHTML = `
-    <strong>${student.name}</strong>
-    <span>작품 보기</span>
-  `;
+    p {
+      margin: 0 0 20px;
+      color: #cbd5e1;
+      font-size: 16px;
+    }
 
-  div.onclick = () => openViewer(student.url);
-  div.onkeypress = (e) => { 
-    if(e.key === "Enter") openViewer(student.url); 
-  };
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+    }
 
-  grid.appendChild(div);
-});
-</script>
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+
+    .card:hover,
+    .card:focus {
+      transform: scale(1.05);
+      background: #334155;
+      outline: none;
+    }
+
+    .card strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .card span {
+      display: block;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    /* 전체 화면 뷰어 */
+    .viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: black;
+      display: none;
+      z-index: 9999;
+    }
+
+    .viewer iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .closeBtn {
+      position: absolute;
+      top: 12px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 10000;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .closeBtn:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .studentName {
+      position: absolute;
+      top: 12px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      z-index: 10000;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 22px;
+        padding: 0 12px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        padding: 16px;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 20px 12px;
+      }
+
+      .card strong {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>상상이 현실로, 내가 만드는 가상 공간</h1>
+  <p>보고 싶은 작품을 선택하세요</p>
+
+  <div class="grid" id="grid"></div>
+
+  <!-- 전체 화면 뷰어 -->
+  <div class="viewer" id="viewer">
+    <div class="studentName" id="studentName"></div>
+    <div class="closeBtn" onclick="closeViewer()">닫기 ✕</div>
+    <iframe id="frame" allowfullscreen></iframe>
+  </div>
+
+  <script>
+    const students = [
+      { name: "김동현", url: "https://edu.delightex.com/PXC-DNB" },
+      { name: "이유찬", url: "https://edu.delightex.com/MAX-PEN" },
+      { name: "최우혁", url: "https://edu.delightex.com/PAG-SBY" },
+      { name: "김민호", url: "https://edu.delightex.com/MVM-RYQ" },
+      { name: "김시현", url: "https://edu.delightex.com/NQX-UWM" },
+      { name: "김지효", url: "https://edu.delightex.com/NTU-XGK" },
+      { name: "한규철", url: "https://edu.delightex.com/QNB-HVE" },
+      { name: "김도린", url: "https://edu.delightex.com/TXB-HHN" },
+      { name: "김우석", url: "https://edu.delightex.com/ETW-KGJ" },
+      { name: "남승현", url: "https://edu.delightex.com/RNT-TTK" },
+      { name: "남정원", url: "https://edu.delightex.com/BUM-HJH" },
+      { name: "심지석", url: "https://edu.delightex.com/BVE-WMK" },
+      { name: "오도윤", url: "https://edu.delightex.com/SYR-HYB" },
+      { name: "이도원", url: "https://edu.delightex.com/MSN-USG" },
+      { name: "이효연", url: "https://edu.delightex.com/NHT-SDA" },
+      { name: "진하음", url: "https://edu.delightex.com/VYG-KXY" }
+    ];
+
+    const grid = document.getElementById("grid");
+    const viewer = document.getElementById("viewer");
+    const frame = document.getElementById("frame");
+    const studentName = document.getElementById("studentName");
+
+    students.forEach((student) => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", student.name + " 작품 보기");
+
+      div.innerHTML = `
+        <strong>${student.name}</strong>
+        <span>작품 보기</span>
+      `;
+
+      div.onclick = () => openViewer(student.url, student.name);
+
+      div.onkeypress = (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          openViewer(student.url, student.name);
+        }
+      };
+
+      grid.appendChild(div);
+    });
+
+    function openViewer(url, name) {
+      frame.src = url;
+      studentName.textContent = name + " 작품";
+      viewer.style.display = "block";
+    }
+
+    function closeViewer() {
+      frame.src = "";
+      viewer.style.display = "none";
+      studentName.textContent = "";
+    }
+
+    // ESC 키로 닫기
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && viewer.style.display === "block") {
+        closeViewer();
+      }
+    });
+  </script>
+
+</body>
+</html>
